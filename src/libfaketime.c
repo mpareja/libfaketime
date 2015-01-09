@@ -208,7 +208,7 @@ static int cache_duration = 10;     /* cache fake time input for 10 seconds */
  * Static timespec to store our startup time, followed by a load-time library
  * initialization declaration.
  */
-static struct system_time_s ftpl_starttime = {{0, -1}, {0, -1}, {0, -1}};
+static struct system_time_s ftpl_starttime = {{0, -1}, {0, -1}, {0, -1}, {0, -1}};
 
 static char user_faked_time_fmt[BUFSIZ] = {0};
 
@@ -319,6 +319,7 @@ static void system_time_from_system (struct system_time_s * systime)
   DONT_FAKE_TIME((*real_clock_gettime)(CLOCK_REALTIME, &systime->real));
   DONT_FAKE_TIME((*real_clock_gettime)(CLOCK_MONOTONIC, &systime->mon));
   DONT_FAKE_TIME((*real_clock_gettime)(CLOCK_MONOTONIC_RAW, &systime->mon_raw));
+  DONT_FAKE_TIME((*real_clock_gettime)(CLOCK_BOOTTIME, &systime->boot));
 #endif
 }
 
@@ -1834,6 +1835,9 @@ int fake_clock_gettime(clockid_t clk_id, struct timespec *tp)
       case CLOCK_MONOTONIC_RAW:
         timespecsub(tp, &ftpl_starttime.mon_raw, &tmp_ts);
         break;
+      case CLOCK_BOOTTIME:
+        timespecsub(tp, &ftpl_starttime.boot, &tmp_ts);
+        break;
       default:
         printf("Invalid clock_id for clock_gettime: %d", clk_id);
         exit(EXIT_FAILURE);
@@ -1972,6 +1976,9 @@ int fake_clock_gettime(clockid_t clk_id, struct timespec *tp)
             break;
           case CLOCK_MONOTONIC_RAW:
             timespecsub(tp, &ftpl_starttime.mon_raw, &tdiff);
+            break;
+          case CLOCK_BOOTTIME:
+            timespecsub(tp, &ftpl_starttime.boot, &tdiff);
             break;
           default:
             printf("Invalid clock_id for clock_gettime: %d", clk_id);
